@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable>
+  <category>HuBMAP Atlas</category>
+  <title>Deconvolve Visium Spots</title>
+  <description>Deconvolve Visium spot data to cell types</description>
+  <version>1.0.0</version>
+  <documentation-url>https://digitalslidearchive.github.io/HistomicsTK/</documentation-url>
+  <license>Apache 2.0</license>
+  <contributor>Sam Border (UF), David Manthey (Kitware)</contributor>
+  <acknowledgements>This work is part of the Sarder Labs project.</acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <file fileExtensions=".RDS">
+      <name>inputRDSFile</name>
+      <label>RDS File</label>
+      <description>RDS File to deconvolve and label</description>
+      <channel>input</channel>
+      <index>0</index>
+    </file>
+    <file fileExtensions=".h5Seurat">
+      <name>atlas</name>
+      <label>Atlas File</label>
+      <description>Atlas file in h5Seurat format</description>
+      <channel>input</channel>
+      <longflag>atlas</longflag>
+    </file>
+    <file fileExtensions=".RDS" reference="inputRDSFile">
+      <name>outputRDSFile</name>
+      <label>Output RDS File</label>
+      <description>Adjusted RDS file (*.RDS)</description>
+      <channel>output</channel>
+      <longflag>rds</longflag>
+    </file>
+    <file fileExtensions=".csv" reference="inputRDSFile">
+      <name>cellFractions</name>
+      <label>Cell Fractions</label>
+      <description>Calculated Cell Fractions (*.csv)</description>
+      <channel>output</channel>
+      <longflag>cell</longflag>
+    </file>
+    <file fileExtensions=".csv" reference="inputRDSFile">
+      <name>spotCoords</name>
+      <label>Spot Coordinates</label>
+      <description>Calculated Spot Coordinates (*.csv)</description>
+      <channel>output</channel>
+      <longflag>spot</longflag>
+    </file>
+  </parameters>
+</executable>
