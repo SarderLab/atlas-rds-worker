@@ -38,7 +38,7 @@ print("Created Subset")
 KBR <- UpdateSeuratObject(KBR)
 print("Updated Seurat Object")
 KBR[["RNA"]] <- as(object = KBR[["RNA"]], Class = "SCTAssay")
-print("Retyped RNNA")
+print("Retyped RNA")
 DefaultAssay(KBR) <- "RNA"
 print("Set DefaultAssay")
 
