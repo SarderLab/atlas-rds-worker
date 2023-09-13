@@ -1,0 +1,7 @@
+How to subsample an atlas:
+
+subsample_hdf5.py Kidney_Healthy-Injury_Cell_Atlas_snCv3_Seurat_07302021.h5Seurat --attrs --analyze --dest kh64tp020l3.h5Seurat --sample=0.2 --catgeory=/meta.data/subclass.l3 --method=equalize
+
+docker build --force-rm -t sarderlab/atlasrdscsv .
+
+docker run -v ./work:/data --rm sarderlab/atlasrdscsv "AtlasRDSCSV" /data/V42D20-364_XY01_2235505.RDS --atlas /data/kh64tp020l3.h5Seurat --cell /data/Vsample0_20_l3.csv
