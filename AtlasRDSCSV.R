@@ -30,7 +30,6 @@ if ("pred_subclass_l2" %in% names(spatial@assays)) {
         file.copy(argv$inputRDSFile, argv$rds)
         print(paste0(" Original RDS: ", argv$rds))
     }   
-    
 } else {
     DefaultAssay(spatial) <- "SCT"
     kbrname <- argv$atlas
@@ -63,7 +62,7 @@ if ("pred_subclass_l2" %in% names(spatial@assays)) {
         weight.reduction = spatial[["pca"]], dims = 1:30)
     print("TransferData:")
     print(head(predictions.assay[, 1:5]))
-    spatial[["pred_subclass_l2"]] <- predictions.assay
+    CreateAssay(object = spatial, name = "pred_subclass_l2", data = predictions.assay)
 
     print("Set spatial")
     df_pred <- predictions.assay@data
@@ -91,7 +90,7 @@ if ("pred_subclass_l2" %in% names(spatial@assays)) {
         weight.reduction = spatial[["pca"]], dims = 1:30)
     print("TransferData")
     print(head(predictions.assay[, 1:5]))
-    spatial[["pred_subclass_l1"]] <- predictions.assay
+    CreateAssay(object = spatial, name = "pred_subclass_l1", data = predictions.assay)
     print(names(spatial@assays))
 
     print("Set spatial")
@@ -110,7 +109,6 @@ if ("pred_subclass_l2" %in% names(spatial@assays)) {
     print("Update spatial")
     if (argv$rds != "") {
         saveRDS(spatial, argv$rds)
-
         print(paste0("Saved rds: ", argv$rds))
     }
 }
