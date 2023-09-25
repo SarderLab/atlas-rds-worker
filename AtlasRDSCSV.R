@@ -22,90 +22,95 @@ argv <- parse_args(parser)
 spatial <- readRDS(argv$inputRDSFile)
 print("Read RDS:")
 print(names(spatial@assays))
-DefaultAssay(spatial) <- "SCT"
 
-kbrname <- argv$atlas
-print(paste0("KBR Atlas Name: ", kbrname))
-KBR <- LoadH5Seurat(kbrname, assays = c("counts", "scale.data"), tools = TRUE, images = FALSE)
-print("Loaded H5Seurat")
-
-Idents(KBR) <- KBR@meta.data$subclass.l2
-print("Set Idents")
-KBR <- subset(KBR, idents = "NA", invert = T)
-print("Created Subset")
-
-# There is a bug in UpdateSCTAssays. Currently, you can use as to convert integrated assay from Assay to SCTAssay
-KBR <- UpdateSeuratObject(KBR)
-print("Updated Seurat Object")
-KBR[["RNA"]] <- as(object = KBR[["RNA"]], Class = "SCTAssay")
-print("Retyped RNA")
-DefaultAssay(KBR) <- "RNA"
-print("Set DefaultAssay")
-
-Idents(KBR) <- KBR@meta.data[["subclass.l2"]]
-print("Set Idents")
-anchors <- FindTransferAnchors(
+if ("pred_subclass_l2" %in% names(spatial@assays)) {
+  # If the assay exists, return the unaltered RDS file
+  print("The RDS file is already deconvoluted. Returning original RDS.")
+  print(paste0(" Original RDS: ", argv$inputRDSFile))
+} else {
+  DefaultAssay(spatial) <- "SCT"
+  kbrname <- argv$atlas
+  print(paste0("KBR Atlas Name: ", kbrname))
+  KBR <- LoadH5Seurat(kbrname, assays = c("counts", "scale.data"), tools = TRUE, images = FALSE)
+  print("Loaded H5Seurat")
+  
+  Idents(KBR) <- KBR@meta.data$subclass.l2
+  print("Set Idents")
+  KBR <- subset(KBR, idents = "NA", invert = T)
+  print("Created Subset")
+  
+  # There is a bug in UpdateSCTAssays. Currently, you can use as to convert integrated assay from Assay to SCTAssay
+  KBR <- UpdateSeuratObject(KBR)
+  print("Updated Seurat Object")
+  KBR[["RNA"]] <- as(object = KBR[["RNA"]], Class = "SCTAssay")
+  print("Retyped RNA")
+  DefaultAssay(KBR) <- "RNA"
+  print("Set DefaultAssay")
+  
+  Idents(KBR) <- KBR@meta.data[["subclass.l2"]]
+  print("Set Idents")
+  anchors <- FindTransferAnchors(
     reference = KBR, query = spatial, normalization.method = "SCT",
     query.assay = "SCT", recompute.residuals = FALSE)
-print("FindTransferAnchors")
-predictions.assay <- TransferData(
+  print("FindTransferAnchors")
+  predictions.assay <- TransferData(
     anchorset = anchors, refdata = KBR@meta.data[["subclass.l2"]],
     prediction.assay = TRUE,
     weight.reduction = spatial[["pca"]], dims = 1:30)
-print("TransferData:")
-print(head(predictions.assay[, 1:5]))
-spatial[["predsubclassl2"]] <- predictions.assay
-
-print("Set spatial")
-df_pred <- predictions.assay@data
-print("Set df_pred")
-max_pred <- apply(df_pred, 2, function(x) max.col(t(x), "first"))
-max_pred_val <- apply(df_pred, 2, function(x) max(t(x)))
-max_pred <- as.data.frame(max_pred)
-max_pred$Seurat_subset <- rownames(df_pred)[max_pred$max_pred]
-max_pred$score <- max_pred_val
-max_pred$Barcode <- rownames(max_pred)
-
-spatial@meta.data$subclass.l2 <- max_pred$Seurat_subset
-spatial@meta.data$subclass.l2_score <- max_pred$score
-print("Update spatial")
-
-Idents(KBR) <- KBR@meta.data[["subclass.l1"]]
-print("Set Idents")
-anchors <- FindTransferAnchors(
+  print("TransferData:")
+  print(head(predictions.assay[, 1:5]))
+  spatial[["pred_subclass_l2"]] <- predictions.assay
+  
+  print("Set spatial")
+  df_pred <- predictions.assay@data
+  print("Set df_pred")
+  max_pred <- apply(df_pred, 2, function(x) max.col(t(x), "first"))
+  max_pred_val <- apply(df_pred, 2, function(x) max(t(x)))
+  max_pred <- as.data.frame(max_pred)
+  max_pred$Seurat_subset <- rownames(df_pred)[max_pred$max_pred]
+  max_pred$score <- max_pred_val
+  max_pred$Barcode <- rownames(max_pred)
+  
+  spatial@meta.data$subclass.l2 <- max_pred$Seurat_subset
+  spatial@meta.data$subclass.l2_score <- max_pred$score
+  print("Update spatial")
+  
+  Idents(KBR) <- KBR@meta.data[["subclass.l1"]]
+  print("Set Idents")
+  anchors <- FindTransferAnchors(
     reference = KBR, query = spatial, normalization.method = "SCT",
     query.assay = "SCT", recompute.residuals = FALSE)
-print("FindTransferAnchors")
-predictions.assay <- TransferData(
+  print("FindTransferAnchors")
+  predictions.assay <- TransferData(
     anchorset = anchors, refdata = KBR@meta.data[["subclass.l1"]],
     prediction.assay = TRUE,
     weight.reduction = spatial[["pca"]], dims = 1:30)
-print("TransferData")
-print(head(predictions.assay[, 1:5]))
-spatial[["predsubclassl1"]] <- predictions.assay
-print(names(spatial@assays))
-
-print("Set spatial")
-df_pred <- predictions.assay@data
-print("Set ds_pred")
-max_pred <- apply(df_pred, 2, function(x) max.col(t(x), "first"))
-max_pred_val <- apply(df_pred, 2, function(x) max(t(x)))
-max_pred <- as.data.frame(max_pred)
-max_pred$Seurat_subset <- rownames(df_pred)[max_pred$max_pred]
-max_pred$score <- max_pred_val
-max_pred$Barcode <- rownames(max_pred)
-
-spatial@meta.data$subclass.l1 <- max_pred$Seurat_subset
-spatial@meta.data$subclass.l1_score <- max_pred$score
-
-print("Update spatial")
-if (argv$rds != "") {
+  print("TransferData")
+  print(head(predictions.assay[, 1:5]))
+  spatial[["pred_subclass_l1"]] <- predictions.assay
+  print(names(spatial@assays))
+  
+  print("Set spatial")
+  df_pred <- predictions.assay@data
+  print("Set ds_pred")
+  max_pred <- apply(df_pred, 2, function(x) max.col(t(x), "first"))
+  max_pred_val <- apply(df_pred, 2, function(x) max(t(x)))
+  max_pred <- as.data.frame(max_pred)
+  max_pred$Seurat_subset <- rownames(df_pred)[max_pred$max_pred]
+  max_pred$score <- max_pred_val
+  max_pred$Barcode <- rownames(max_pred)
+  
+  spatial@meta.data$subclass.l1 <- max_pred$Seurat_subset
+  spatial@meta.data$subclass.l1_score <- max_pred$score
+  
+  print("Update spatial")
+  if (argv$rds != "") {
     saveRDS(spatial, argv$rds)
-
     print(paste0("Saved rds: ", argv$rds))
+  }
 }
 
-cell_type_fract <- GetAssayData(spatial@assays[["predsubclassl2"]])
+cell_type_fract <- GetAssayData(spatial@assays[["pred_subclass_l2"]])
 
 # Normalizing so that columns sum to 1
 cell_type_fract <- cell_type_fract[1:nrow(cell_type_fract) - 1, ]
@@ -116,10 +121,10 @@ cell_type_norm[is.na(cell_type_norm)] = 0
 spot_coords <- spatial@images[["slice1"]]@coordinates
 
 if (argv$cell != "") {
-    write.csv(cell_type_norm, argv$cell)
-    print(paste0("Saved cell csv: ", argv$cell))
+  write.csv(cell_type_norm, argv$cell)
+  print(paste0("Saved cell csv: ", argv$cell))
 }
 if (argv$spot != "") {
-    write.csv(spot_coords, argv$spot)
-    print(paste0("Saved spot coordinates csv: ", argv$spot))
+  write.csv(spot_coords, argv$spot)
+  print(paste0("Saved spot coordinates csv: ", argv$spot))
 }
