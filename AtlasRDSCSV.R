@@ -102,12 +102,13 @@ if ("pred_subclass_l2" %in% names(spatial@assays)) {
   
   spatial@meta.data$subclass.l1 <- max_pred$Seurat_subset
   spatial@meta.data$subclass.l1_score <- max_pred$score
-  
-  print("Update spatial")
-  if (argv$rds != "") {
-    saveRDS(spatial, argv$rds)
-    print(paste0("Saved rds: ", argv$rds))
-  }
+
+  print("Update spatial")  
+}
+
+if (argv$rds != "") {
+  saveRDS(spatial, argv$rds)
+  print(paste0("Saved rds: ", argv$rds))
 }
 
 cell_type_fract <- GetAssayData(spatial@assays[["pred_subclass_l2"]])
