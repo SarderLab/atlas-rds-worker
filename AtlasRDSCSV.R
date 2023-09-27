@@ -106,6 +106,9 @@ if ("pred_subclass_l2" %in% names(spatial@assays)) {
   print("Update spatial")  
 }
 
+spatial@assays[["SCT"]]<-NULL
+spatial@assays[["Spatial"]]<-NULL
+
 if (argv$rds != "") {
   saveRDS(spatial, argv$rds)
   print(paste0("Saved rds: ", argv$rds))
