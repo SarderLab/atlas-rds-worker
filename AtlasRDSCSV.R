@@ -114,11 +114,15 @@ if (argv$rds != "") {
   print(paste0("Saved rds: ", argv$rds))
 }
 
-cell_type_fract <- GetAssayData(spatial@assays[["pred_subclass_l2"]])
+if ("pred_subclass_l2" %in% names(spatial@assays)){
+  cell_type_fract <- GetAssayData(spatial@assays[["pred_subclass_l2"]])
+} else if ("predsubclassl2" %in% names(spatial@assays)){
+  cell_type_fract <- GetAssayData(spatial@assays[["predsubclassl2"]])
+}
 
 # Normalizing so that columns sum to 1
 cell_type_fract <- cell_type_fract[1:nrow(cell_type_fract) - 1, ]
-cell_type_norm <- cell_type_fract / colSums(cell_type_fract)
+cell_type_norm <- sweep(cell_type_fract,2,colSums(cell_type_fract),'/')
 cell_type_norm[is.na(cell_type_norm)] = 0
 
 # Getting spot barcodes and coordinates
