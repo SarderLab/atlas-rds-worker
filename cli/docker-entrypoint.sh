@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ "$1" = "--list_cli" ]; then
-    cat list_cli.json
+    cat slicer_cli_list.json
 else
     if [ "$2" = "--xml" ]; then
         cat "$1".xml
