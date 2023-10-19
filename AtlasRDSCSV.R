@@ -23,7 +23,7 @@ spatial <- readRDS(argv$inputRDSFile)
 print("Read RDS:")
 print(names(spatial@assays))
 
-if ("pred_subclass_l2" %in% names(spatial@assays)) {
+if ("pred_subclass_l2" %in% names(spatial@assays)) | ("predsubclassl2" %in% names(spatial@assays)) {
   # If the assay exists, return the unaltered RDS file
   print("The RDS file is already deconvoluted. Returning original RDS.")
   print(paste0(" Original RDS: ", argv$inputRDSFile))
